@@ -1,0 +1,6 @@
+[services.main]
+  start = "python main.py"
+
+[[cron]]
+  schedule = "* * * * *"
+  command = "python main.py"
