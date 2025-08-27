@@ -206,18 +206,19 @@ def es_particular(response, soup):
     """Verifica si el inmueble es de un particular."""
     soup = BeautifulSoup(response.content, 'html.parser')
     nombre_tag = soup.find('div', {'class': 'professional-name'})
-    if not nombre_tag:
-        return False
-    
-    particular_nombre = nombre_tag.text.strip()
-    nombre_normalizado = normalizar(particular_nombre)
-    
-    # Comprobar que no contenga palabras de la lista negra
-    for palabra in lista_negra_inmobiliarias:
-        if palabra in nombre_normalizado:
-            return False
 
-    return True
+    if nombre_tag and nombre_tag.find('span', {'class': 'particular'}):
+        particular_nombre = nombre_tag.find('span', {'class': 'particular'}).text.strip()
+        nombre_normalizado = normalizar(particular_nombre)
+    
+        # Comprobar que no contenga palabras de la lista negra
+        for palabra in lista_negra_inmobiliarias:
+            if palabra in nombre_normalizado:
+                return False
+
+        return True
+
+    return False
 
 def quiere_inmobiliarias(response, soup):
     """Verifica si el inmueble es de una inmobiliaria."""
