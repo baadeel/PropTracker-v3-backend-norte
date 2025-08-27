@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from datetime import date
 from datetime import datetime
 import re
+import unicodedata
 
 
 HEADERS = {
@@ -19,6 +20,14 @@ HEADERS = {
 COOKIES = {
     "datadome":"y5~JoPGOs9vk6LSZEu8h9IyDlZ7qQ_Hm16S6x9v0LAkbC~o14PgCM0Af9AEFi2wryW7g6HTNyvZXlNHSggZrYocqZrr_4YqmKxF7G8PfoZUvsQD0WIjHu1Nv9WiGP9TL"
 }
+
+lista_negra_no_inmobiliarias = ["abstenerse", "inmobiliaria", "agencias", "intermediarios"]
+
+def normalizar(texto):
+    texto = texto.lower()
+    texto = unicodedata.normalize('NFD', texto)
+    texto = ''.join(c for c in texto if unicodedata.category(c) != 'Mn')
+    return texto
 
 
 def scrapear_listas_de_inmuebles(pagina, primeros_5_inmuebles_db, inmuebles_5_nuevos):
@@ -138,10 +147,32 @@ def sacar_datos_json(json, primeros_5_inmuebles_db, inmuebles_5_nuevos):
                     fecha = fecha_obj.strftime("%Y/%m/%d")
                     datos_inmueble["fecha"] = fecha
                 
-
+                quiere_inmo = quiere_inmobiliarias(response, soup)
+                datos_inmueble["quiere_inmobiliaria"] = quiere_inmo
+                
             ids_particulares.append(datos_inmueble)
 
     print("Particulares de esta página: ", ids_particulares, flush=True)
     print("Finalizado", flush=True)
 
     return ids_particulares, primeros_5_inmuebles, no_hay_inmuebles_nuevos, inmuebles_5_nuevos
+
+
+def quiere_inmobiliarias(response, soup):
+    """Verifica si el inmueble es de una inmobiliaria."""
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    descripcion = soup.find('div', {'class': 'styles_in-readAll__04LDT'}).find('div')
+
+    if not descripcion:
+        return True
+    
+    descripcion_limpia = descripcion.get_text(separator=" ")
+    descripcion_normalizada = normalizar(descripcion_limpia)
+
+    for palabra in lista_negra_no_inmobiliarias:
+        palabra_normalizada = normalizar(palabra)
+        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\b', descripcion_normalizada):
+            return False
+    
+    return True
