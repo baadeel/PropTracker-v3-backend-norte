@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from datetime import date
 import re
 from datetime import datetime
+import unicodedata
 
 
 HEADERS = {
@@ -19,6 +20,14 @@ HEADERS = {
 COOKIES = {
     'datadome':'PvY9~iaY083p86Dvn1~p_L7C9RYgTh9_nU4U8dDtJbKU_jvjFN~uLfqKdJTsiOcd7ur_FJKx9K6A5hInc4q7fTu4AJ66WQJQsM4dSAbtvAUArobviSzEWpoU7Qf9iN8V'
 }
+
+lista_negra_no_inmobiliarias = ["abstenerse", "inmobiliaria", "agencias", "intermediarios"]
+
+def normalizar(texto):
+    texto = texto.lower()
+    texto = unicodedata.normalize('NFD', texto)
+    texto = ''.join(c for c in texto if unicodedata.category(c) != 'Mn')
+    return texto
 
 def sacar_id_link_pag(response, pagina_actual_link):
     """Extrae los IDs de los inmuebles en una página dada."""
@@ -180,6 +189,8 @@ def scrapear_inmuebles(lista_ids_links, primeros_5_inmuebles_db, inmuebles_5_nue
                     zona = None
                     print("No hay suficientes elementos <li>")
 
+                quiere_inmo = quiere_inmobiliarias(response, soup)
+
                 datos_inmueble = {}
                 datos_inmueble["id"] = id
                 datos_inmueble["link"] = link
@@ -192,9 +203,10 @@ def scrapear_inmuebles(lista_ids_links, primeros_5_inmuebles_db, inmuebles_5_nue
                 datos_inmueble["habitaciones"] = habs
                 datos_inmueble["precio"] = precio
                 datos_inmueble["zona"] = zona
+                datos_inmueble["quiere_inmobiliaria"] = quiere_inmo
 
                 # Crear una copia'
-                datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona"]}
+                datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona","quiere_inmobiliaria"]}
                 
                 #Borrar primer elemento y meter el nuevo inmueble
                 if len(inmuebles_5_nuevos) == 5:
@@ -217,3 +229,22 @@ def scrapear_inmuebles(lista_ids_links, primeros_5_inmuebles_db, inmuebles_5_nue
 
     primeros_5_inmuebles = [{**item, "fecha": convertir_fecha(item["fecha"])} for item in primeros_5_inmuebles]
     return ids_particulares, primeros_5_inmuebles, no_hay_inmuebles_nuevos, inmuebles_5_nuevos
+
+def quiere_inmobiliarias(response, soup):
+    """Verifica si el inmueble es de una inmobiliaria."""
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    descripcion = soup.find('div', {'class': 'description'})
+
+    if not descripcion:
+        return True
+    
+    descripcion_limpia = descripcion.get_text(separator=" ")
+    descripcion_normalizada = normalizar(descripcion_limpia)
+
+    for palabra in lista_negra_no_inmobiliarias:
+        palabra_normalizada = normalizar(palabra)
+        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\b', descripcion_normalizada):
+            return False
+
+    return True
