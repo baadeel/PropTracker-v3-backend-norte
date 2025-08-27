@@ -144,6 +144,9 @@ def scrapear_inmuebles_parte_1(lista_ids_links, primeros_5_inmuebles_db, inmuebl
                     zona_html = soup.find('div', {'class': 'u-wrapper breadcrumb__list'}).find_all('div')
                     zona = zona_html[-2].find('a').get_text(strip=True)
 
+                    quiere_inmo = quiere_inmobiliarias(response, soup)
+
+
                     datos_inmueble = {}
                     datos_inmueble["id"] = id
                     datos_inmueble["link"] = link
@@ -156,9 +159,10 @@ def scrapear_inmuebles_parte_1(lista_ids_links, primeros_5_inmuebles_db, inmuebl
                     datos_inmueble["habitaciones"] = habs
                     datos_inmueble["precio"] = precio
                     datos_inmueble["zona"] = zona
+                    datos_inmueble["quiere_inmobiliaria"] = quiere_inmo
 
                     # Crear una copia'
-                    datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona"]}
+                    datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona", "quiere_inmobiliaria"]}
                     
                     #Borrar primer elemento y meter el nuevo inmueble
                     if len(inmuebles_5_nuevos) == 5:
@@ -252,6 +256,8 @@ def scrapear_inmuebles_parte_2(lista_ids_links, primeros_5_inmuebles_db, inmuebl
                     zona_html = soup.find('div', {'class': 'u-wrapper breadcrumb__list'}).find_all('div')
                     zona = zona_html[-2].find('a').get_text(strip=True)
 
+                    quiere_inmo = quiere_inmobiliarias(response, soup)
+
                     datos_inmueble = {}
                     datos_inmueble["id"] = id
                     datos_inmueble["link"] = link
@@ -264,9 +270,10 @@ def scrapear_inmuebles_parte_2(lista_ids_links, primeros_5_inmuebles_db, inmuebl
                     datos_inmueble["habitaciones"] = habs
                     datos_inmueble["precio"] = precio
                     datos_inmueble["zona"] = zona
+                    datos_inmueble["quiere_inmobiliaria"] = quiere_inmo
 
                     # Crear una copia'
-                    datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona"]}
+                    datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona", "quiere_inmobiliaria"]}
                     
                     #Borrar primer elemento y meter el nuevo inmueble
                     if len(inmuebles_5_nuevos) == 5:
@@ -340,3 +347,22 @@ def convertir_fecha(fecha_str):
     except (ValueError, TypeError):
         print(f"Error al convertir fecha: {fecha_str}")
         return None
+
+def quiere_inmobiliarias(response, soup):
+    """Verifica si el inmueble es de una inmobiliaria."""
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    descripcion = soup.find('div', {'class': 'description__content'})
+
+    if not descripcion:
+        return True
+    
+    descripcion_limpia = descripcion.get_text(separator=" ")
+    descripcion_normalizada = normalizar(descripcion_limpia)
+
+    for palabra in lista_negra_no_inmobiliarias:
+        palabra_normalizada = normalizar(palabra)
+        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\b', descripcion_normalizada):
+            return False
+
+    return True
