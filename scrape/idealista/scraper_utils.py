@@ -136,6 +136,9 @@ def scrapear_inmuebles(lista_ids, primeros_5_inmuebles_db, inmuebles_5_nuevos):
                     zona_html = zona_completa_html[-2] 
                     zona = zona_html.get_text(strip=True)
 
+                    quiere_inmo = quiere_inmobiliarias(response, soup)
+
+
                     datos_inmueble = {
                         "id": id,
                         "link": f"https://www.idealista.com/inmueble/{id}/",
@@ -147,7 +150,8 @@ def scrapear_inmuebles(lista_ids, primeros_5_inmuebles_db, inmuebles_5_nuevos):
                         "habitaciones": resultado.get("habitaciones"),
                         "baños": resultado.get("baños"),
                         "precio": precio,
-                        "zona": zona
+                        "zona": zona,
+                        "quiere_inmobiliaria": quiere_inmo
                     }
 
                     # Crear una copia
@@ -213,4 +217,23 @@ def es_particular(response, soup):
         if palabra in nombre_normalizado:
             return False
 
+    return True
+
+def quiere_inmobiliarias(response, soup):
+    """Verifica si el inmueble es de una inmobiliaria."""
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    descripcion = soup.find('div', {'class': 'adCommentsLanguage'}).find('p')
+
+    if not descripcion:
+        return True
+    
+    descripcion_limpia = descripcion.get_text(separator=" ")
+    descripcion_normalizada = normalizar(descripcion_limpia)
+
+    for palabra in lista_negra_no_inmobiliarias:
+        palabra_normalizada = normalizar(palabra)
+        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\b', descripcion_normalizada):
+            return False
+    
     return True
