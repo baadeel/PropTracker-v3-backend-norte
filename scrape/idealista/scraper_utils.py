@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from datetime import date
 import re
 import unicodedata
+from scrape.listas_negras import diccionario_abstenerse, diccionario_nombres_inmobiliarias
+
 
 
 # jejejej
@@ -20,11 +22,9 @@ HEADERS = {
 COOKIES = {
     "SESSION": "e87100649bd6e940~e92b4b97-13c4-4461-ad9a-a2782f31986a",
     "userUUID": "47dd32a4-8b54-4223-8dc6-ff6170eb44d4",
-    "datadome":"hayRn4pCxpb20NBec7I14irTdqeexam2TdbBGFVOnE9zyho9kVHw2ZavtlikGvpCOYH8ciNIY_OXn11JSkzA04RUaHvqBSkrZVF_A_k~ikHGBjj1b8ia0XMA90z4kg9z"
+    "datadome":"A~xICP_VQ~Vvqg3yUn_WPTjqfAHpXH5B_zolGZ_ZFIPBVxY_pad4lpmHCWv93fFL_3Vas0pKCLSt4uc0ZZXE3G2_YO1W6J6sMi~FN5kCP1wH7fMcLbWOruFhrXRFZuZA"
 }
 
-lista_negra_inmobiliarias = ["inmobiliaria"]
-lista_negra_no_inmobiliarias = ["abstenerse", "inmobiliaria", "agencias", "intermediarios"]
 
 def normalizar(texto):
     texto = texto.lower()
@@ -212,7 +212,7 @@ def es_particular(response, soup):
         nombre_normalizado = normalizar(particular_nombre)
     
         # Comprobar que no contenga palabras de la lista negra
-        for palabra in lista_negra_inmobiliarias:
+        for palabra in diccionario_nombres_inmobiliarias:
             if palabra in nombre_normalizado:
                 return False
 
@@ -232,9 +232,11 @@ def quiere_inmobiliarias(response, soup):
     descripcion_limpia = descripcion.get_text(separator=" ")
     descripcion_normalizada = normalizar(descripcion_limpia)
 
-    for palabra in lista_negra_no_inmobiliarias:
+    for palabra in diccionario_abstenerse:
         palabra_normalizada = normalizar(palabra)
-        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\b', descripcion_normalizada):
+        # Busca la raíz seguida de cualquier letra
+        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\w*\b', descripcion_normalizada):
+            print(f"Palabra prohibida encontrada: {palabra}", flush=True)
             return False
     
     return True

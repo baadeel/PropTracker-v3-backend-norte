@@ -8,6 +8,7 @@ from datetime import date
 import re
 from datetime import datetime
 import unicodedata
+from scrape.listas_negras import diccionario_abstenerse
 
 
 HEADERS = {
@@ -21,7 +22,6 @@ COOKIES = {
     'datadome':'PvY9~iaY083p86Dvn1~p_L7C9RYgTh9_nU4U8dDtJbKU_jvjFN~uLfqKdJTsiOcd7ur_FJKx9K6A5hInc4q7fTu4AJ66WQJQsM4dSAbtvAUArobviSzEWpoU7Qf9iN8V'
 }
 
-lista_negra_no_inmobiliarias = ["abstenerse", "inmobiliaria", "agencias", "intermediarios"]
 
 def normalizar(texto):
     texto = texto.lower()
@@ -242,9 +242,9 @@ def quiere_inmobiliarias(response, soup):
     descripcion_limpia = descripcion.get_text(separator=" ")
     descripcion_normalizada = normalizar(descripcion_limpia)
 
-    for palabra in lista_negra_no_inmobiliarias:
+    for palabra in diccionario_abstenerse:
         palabra_normalizada = normalizar(palabra)
-        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\b', descripcion_normalizada):
+        if re.search(r'\b' + re.escape(palabra_normalizada) + r'\w*\b', descripcion_normalizada):
             return False
 
     return True

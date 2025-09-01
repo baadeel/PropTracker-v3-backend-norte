@@ -71,8 +71,8 @@ def add_propertie(inmueble):
         with conn.cursor() as cur:
             # La sentencia SQL para insertar un nuevo inmueble
             insert_query = """
-            INSERT INTO inmuebles (id_portal, titulo, fecha, localizacion, plataforma, link, precio, habitaciones, baños, metros, zona)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO inmuebles (id_portal, titulo, fecha, localizacion, plataforma, link, precio, habitaciones, baños, metros, zona, quiere_inmobiliaria)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             # Obtenemos los valores del diccionario
             inmueble_id = inmueble['id']
@@ -86,9 +86,10 @@ def add_propertie(inmueble):
             banos = inmueble['baños']
             metros = inmueble['metros']
             zona = inmueble['zona']
+            quiere_inmobiliaria = inmueble['quiere_inmobiliaria']
 
             # Ejecutamos la consulta con los valores extraídos del diccionario
-            cur.execute(insert_query, (inmueble_id, titulo, fecha, localizacion, plataforma, link, precio, habitaciones, banos, metros, zona))
+            cur.execute(insert_query, (inmueble_id, titulo, fecha, localizacion, plataforma, link, precio, habitaciones, banos, metros, zona, quiere_inmobiliaria))
 
             # Hacemos commit para guardar los cambios
             conn.commit()
