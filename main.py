@@ -5,8 +5,8 @@ from scrape.yaencontre.refresh_particulares import refresh_particulares as refre
 from scrape.indomio.refresh_particulares import refresh_particulares as refresh_indomio
 
 if __name__ == "__main__":
-    refresh_idealista()
-    refresh_pisos_1()
-    refresh_pisos_2()
+    # refresh_idealista()
+    # refresh_pisos_1()
+    # refresh_pisos_2()
     refresh_yaencontre()
-    refresh_indomio()
+    # refresh_indomio()

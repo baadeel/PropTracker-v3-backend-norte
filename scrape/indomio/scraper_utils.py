@@ -108,6 +108,8 @@ def sacar_datos_json(json, primeros_5_inmuebles_db, inmuebles_5_nuevos):
         precio = datos[0].get("price", {}).get("value")
         zona = datos[0].get("location", {}).get("city")
 
+        tiene_telefono = advertiser.get("hasCallNumbers")    
+        print("Tiene teléfono: ", tiene_telefono, flush=True)    
 
         datos_inmueble = {}
         datos_inmueble["id"] = id 
@@ -121,8 +123,9 @@ def sacar_datos_json(json, primeros_5_inmuebles_db, inmuebles_5_nuevos):
         datos_inmueble["precio"] = precio
         datos_inmueble["zona"] = zona
         datos_inmueble["fecha"] = date.today().strftime("%Y/%m/%d")
+        datos_inmueble["tiene_telefono"] = tiene_telefono
 
-        datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona"]}
+        datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona", "tiene_telefono"]}
 
         #Borrar primer elemento y meter el nuevo inmueble
         if len(inmuebles_5_nuevos) == 5:

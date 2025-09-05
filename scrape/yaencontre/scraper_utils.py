@@ -146,7 +146,7 @@ def scrapear_inmuebles(lista_ids_links, primeros_5_inmuebles_db, inmuebles_5_nue
         link = inmueble["link"]
         try:
             scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False})
-            response = scraper.get(link, headers=HEADERS, cookies=COOKIES)
+            response = scraper.get('https://www.yaencontre.com/venta/piso/inmueble-u14747107_55306626', headers=HEADERS, cookies=COOKIES)
             soup = BeautifulSoup(response.content, 'html.parser')
             if response.status_code == 200:
                 titulo = soup.find(
@@ -191,6 +191,8 @@ def scrapear_inmuebles(lista_ids_links, primeros_5_inmuebles_db, inmuebles_5_nue
 
                 quiere_inmo = quiere_inmobiliarias(response, soup)
 
+                tiene_telefono = buscar_tiene_telefono(response)
+
                 datos_inmueble = {}
                 datos_inmueble["id"] = id
                 datos_inmueble["link"] = link
@@ -204,9 +206,10 @@ def scrapear_inmuebles(lista_ids_links, primeros_5_inmuebles_db, inmuebles_5_nue
                 datos_inmueble["precio"] = precio
                 datos_inmueble["zona"] = zona
                 datos_inmueble["quiere_inmobiliaria"] = quiere_inmo
+                datos_inmueble["tiene_telefono"] = tiene_telefono
 
                 # Crear una copia'
-                datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona","quiere_inmobiliaria"]}
+                datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros","baños","habitaciones","precio","zona","quiere_inmobiliaria", "tiene_telefono"]}
                 
                 #Borrar primer elemento y meter el nuevo inmueble
                 if len(inmuebles_5_nuevos) == 5:
@@ -248,3 +251,12 @@ def quiere_inmobiliarias(response, soup):
             return False
 
     return True
+
+def buscar_tiene_telefono(response):
+    """Verifica si el inmueble tiene teléfono de contacto."""
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    telefono = soup.find('div', {'class': 'icon-phone-2'})
+    resultado = bool(telefono)
+        
+    return resultado

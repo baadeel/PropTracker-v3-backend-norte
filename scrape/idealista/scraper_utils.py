@@ -138,6 +138,8 @@ def scrapear_inmuebles(lista_ids, primeros_5_inmuebles_db, inmuebles_5_nuevos):
 
                     quiere_inmo = quiere_inmobiliarias(response, soup)
 
+                    tiene_telefono = buscar_tiene_telefono(response)
+ 
 
                     datos_inmueble = {
                         "id": id,
@@ -151,11 +153,12 @@ def scrapear_inmuebles(lista_ids, primeros_5_inmuebles_db, inmuebles_5_nuevos):
                         "baños": resultado.get("baños"),
                         "precio": precio,
                         "zona": zona,
-                        "quiere_inmobiliaria": quiere_inmo
+                        "quiere_inmobiliaria": quiere_inmo,
+                        "tiene_telefono": tiene_telefono
                     }
 
                     # Crear una copia
-                    datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros", "baños","habitaciones","precio","zona"]}
+                    datos_sin_link_titulo = {k: v for k, v in datos_inmueble.items() if k not in ["link", "titulo","metros", "baños","habitaciones","precio","zona", "quiere_inmobiliaria", "tiene_telefono"]}
                     
                     #Borrar primer elemento y meter el nuevo inmueble
                     if len(inmuebles_5_nuevos) == 5:
@@ -240,3 +243,14 @@ def quiere_inmobiliarias(response, soup):
             return False
     
     return True
+
+from bs4 import BeautifulSoup
+
+def buscar_tiene_telefono(response):
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    telefono = soup.find('div', {'id': 'contact-phones-container'})
+    
+    resultado = bool(telefono)    
+    return resultado
+
