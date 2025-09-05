@@ -1,2 +1,2 @@
 diccionario_abstenerse = ["inmobili", "agenc", "intermediario", "absten", "asesor", "denunc"]
-diccionario_nombres_inmobiliarias = ["inmobiliaria"]
+diccionario_nombres_inmobiliarias = ["inmobiliaria", "GALVANI COMPANY SL"]
